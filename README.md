@@ -56,12 +56,29 @@ There is nothing to build. Vercel serves the files as they are (framework preset
 
 ### Moving the custom domain over (do this when you're ready to retire WordPress)
 
-1. In the Vercel project, open **Settings → Domains** and add `ezzarghani.org` and `www.ezzarghani.org`. Make one of them redirect to the other.
-2. At the DNS provider, set the records Vercel shows. Usually these are:
-   - `A` record for `@` → `76.76.21.21`
-   - `CNAME` record for `www` → `cname.vercel-dns.com`
-3. Vercel issues the HTTPS certificate automatically once DNS resolves.
-4. Check whether the email (`contact@ezzarghani.org`) is hosted with the same DNS provider. If it is, keep the existing `MX` (and SPF/DKIM `TXT`) records unchanged.
+Both domains are already attached to the Vercel project: `ezzarghani.org` is the primary, and `www.ezzarghani.org` 308-redirects to it.
+What's left is the DNS change.
+
+DNS is managed in **Namecheap hosting cPanel → Zone Editor** (nameservers `dns1/dns2.namecheaphosting.com`).
+
+| Record | Change from | Change to |
+|---|---|---|
+| `A` `ezzarghani.org` | `198.54.114.222` | `216.198.79.1` **and** a second `A` record `64.29.17.1` |
+| `CNAME` `www` | `ezzarghani.org` | `3e5e02b76a578d10.vercel-dns-017.com` |
+
+**Leave the email records alone.** `contact@ezzarghani.org` is hosted on the same Namecheap account. Keep all of these exactly as they are:
+
+- `MX` → `mx1/mx2/mx3-hosting.jellyfish.systems`
+- `A` `mail.ezzarghani.org` → `198.54.114.222`
+- the SPF, DKIM (`default._domainkey`), DMARC and Google site-verification `TXT` records
+
+The SPF record uses `+a`, which authorizes whatever IP the main `A` record points to. Once that record points to Vercel, add `+ip4:198.54.114.222` to the SPF so mail sent from the hosting server keeps passing:
+
+```
+v=spf1 +a +mx +ip4:198.54.114.94 +ip4:198.54.116.94 +ip4:198.54.114.222 include:spf.web-hosting.com ~all
+```
+
+Vercel issues the HTTPS certificate automatically once DNS resolves. That usually takes minutes, and up to the record's TTL.
 
 ## Contact form
 
