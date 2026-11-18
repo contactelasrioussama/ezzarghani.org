@@ -1,4 +1,8 @@
 .claude/
+dns-backup-*.txt
+node_modules/
+.vercel/
+.env*
 .DS_Store
 Thumbs.db
 desktop.ini

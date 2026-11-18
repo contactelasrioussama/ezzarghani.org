@@ -24,6 +24,8 @@ assets/
   js/main.js       mobile menu, masonry gallery, lightbox, contact form, footer year
   img/*.webp       photographs (downloaded from the original site)
   favicon.webp     dove logo
+api/contact.js     Vercel function that emails contact-form messages (SMTP)
+package.json       its single dependency (nodemailer)
 vercel.json        trailing-slash URLs (like WordPress), image caching, security headers
 sitemap.xml, robots.txt
 ```
@@ -52,44 +54,38 @@ The Vercel project is linked to this GitHub repository:
 - Every push to `main` deploys to production.
 - Every other branch or pull request gets its own preview URL.
 
-There is nothing to build. Vercel serves the files as they are (framework preset **Other**, no build command, output directory = repository root).
+The pages are served as static files. The only server code is `api/contact.js`; Vercel installs its one dependency (`nodemailer`) from `package.json`. There is no build command.
 
-### Moving the custom domain over (do this when you're ready to retire WordPress)
+### Domain and DNS (done 2026-11-18)
 
-Both domains are already attached to the Vercel project: `ezzarghani.org` is the primary, and `www.ezzarghani.org` 308-redirects to it.
-What's left is the DNS change.
+`ezzarghani.org` is the primary domain, and `www.ezzarghani.org` 308-redirects to it.
+DNS stays at **Namecheap hosting cPanel → Zone Editor** (nameservers `dns1/dns2.namecheaphosting.com`):
 
-DNS is managed in **Namecheap hosting cPanel → Zone Editor** (nameservers `dns1/dns2.namecheaphosting.com`).
+| Record | Value |
+|---|---|
+| `A` `ezzarghani.org` | `216.198.79.1` and `64.29.17.1` (Vercel), TTL 300 |
+| `CNAME` `www` | `3e5e02b76a578d10.vercel-dns-017.com` (Vercel), TTL 300 |
+| SPF `TXT` | `v=spf1 +a +mx +ip4:198.54.114.94 +ip4:198.54.116.94 +ip4:198.54.114.222 include:spf.web-hosting.com ~all` |
 
-| Record | Change from | Change to |
-|---|---|---|
-| `A` `ezzarghani.org` | `198.54.114.222` | `216.198.79.1` **and** a second `A` record `64.29.17.1` |
-| `CNAME` `www` | `ezzarghani.org` | `3e5e02b76a578d10.vercel-dns-017.com` |
+Email still runs on the Namecheap hosting. Don't change the `MX`, `mail.` `A`, DKIM or DMARC records.
 
-**Leave the email records alone.** `contact@ezzarghani.org` is hosted on the same Namecheap account. Keep all of these exactly as they are:
+**Mail apps** (phone, Outlook, etc.) must use the server **`server215.web-hosting.com`**: IMAP 993 / SMTP 465, SSL. Don't use `ezzarghani.org`, which now points to Vercel.
 
-- `MX` → `mx1/mx2/mx3-hosting.jellyfish.systems`
-- `A` `mail.ezzarghani.org` → `198.54.114.222`
-- the SPF, DKIM (`default._domainkey`), DMARC and Google site-verification `TXT` records
-
-The SPF record uses `+a`, which authorizes whatever IP the main `A` record points to. Once that record points to Vercel, add `+ip4:198.54.114.222` to the SPF so mail sent from the hosting server keeps passing:
-
-```
-v=spf1 +a +mx +ip4:198.54.114.94 +ip4:198.54.116.94 +ip4:198.54.114.222 include:spf.web-hosting.com ~all
-```
-
-Vercel issues the HTTPS certificate automatically once DNS resolves. That usually takes minutes, and up to the record's TTL.
+To roll back to WordPress: set the `A` record back to `198.54.114.222` (delete the second one) and the `www` CNAME back to `ezzarghani.org`.
 
 ## Contact form
 
-The site is purely static, with no server code to send email. The form therefore works in two ways:
+The form posts to **`/api/contact`** (`api/contact.js`, a Vercel function). The function emails the message to `contact@ezzarghani.org` through the domain's own cPanel mail server. **Reply** in the inbox goes straight to the visitor.
 
-- **As shipped:** pressing *Submit* opens the visitor's email app with the message already addressed to `contact@ezzarghani.org`.
-- **Recommended:** create a free form endpoint at [Formspree](https://formspree.io) (or Web3Forms). Then put its URL in `contact/index.html`:
-  ```html
-  <form id="contact-form" ... data-endpoint="https://formspree.io/f/XXXXXXXX">
-  ```
-  Messages are then delivered by email with no mail app needed, and the visitor sees an inline "Thank you" message. The hidden `_gotcha` field is Formspree's honeypot for catching spam bots.
+- **Settings:** Vercel → Project `ezzarghani` → Settings → Environment Variables. `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER` and `MAIL_TO` are already set. **`SMTP_PASS`** (the mailbox password) must be added by hand, as a *Sensitive* variable for Production and Preview. Redeploy after changing it.
+- **If you change the mailbox password in cPanel**, update `SMTP_PASS` too, or the form stops sending.
+- **Spam protection:**
+  - a hidden honeypot field
+  - submissions faster than 3 seconds are rejected
+  - a limit of 5 messages per IP per 10 minutes
+  - only requests from the site's own domains are accepted
+- **Fallback:** if `data-endpoint` is emptied in `contact/index.html`, *Submit* opens the visitor's email app instead.
+- **Logs:** Vercel → Project → Logs, filtered on `/api/contact`.
 
 ## Editing content
 

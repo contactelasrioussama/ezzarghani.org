@@ -1,0 +1,12 @@
+{
+  "name": "ezzarghani-org",
+  "private": true,
+  "description": "Static site for ezzarghani.org plus one Vercel function (api/contact.js) that emails contact-form messages.",
+  "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "nodemailer": "6.9.16"
+  }
+}

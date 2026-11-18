@@ -143,6 +143,7 @@
      POSTed there. Otherwise it falls back to opening the visitor's mail app. */
   var form = document.getElementById("contact-form");
   if (form) {
+    var loadedAt = Date.now();
     var status = form.querySelector(".form-status");
     var button = form.querySelector(".btn-submit");
 
@@ -196,13 +197,41 @@
         return;
       }
 
+      var payload = {
+        first_name: first,
+        last_name: last,
+        email: email.value.trim(),
+        subject: form.elements.subject.value.trim(),
+        message: message.value.trim(),
+        _gotcha: form.querySelector(".hp-field input").value,
+        _t: loadedAt
+      };
+
       button.disabled = true;
       button.textContent = "Sending…";
-      fetch(endpoint, { method: "POST", body: new FormData(form), headers: { Accept: "application/json" } })
+      fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload)
+      })
         .then(function (res) {
-          if (!res.ok) throw new Error(res.status);
-          form.reset();
-          setStatus("Thank you for your message. We will get in touch with you shortly.", "success");
+          return res.json().catch(function () { return {}; }).then(function (data) {
+            if (res.ok && data.ok) {
+              form.reset();
+              loadedAt = Date.now();
+              setStatus("Thank you for your message. We will get in touch with you shortly.", "success");
+              return;
+            }
+            if (data.errors) {
+              Object.keys(data.errors).forEach(function (field) {
+                if (form.elements[field]) fieldError(form.elements[field], data.errors[field]);
+              });
+              var bad = form.querySelector("[aria-invalid]");
+              if (bad) bad.focus();
+              return;
+            }
+            throw new Error(data.error || res.status);
+          });
         })
         .catch(function () {
           setStatus("Sorry, something went wrong. Please email contact@ezzarghani.org directly.", "error");
