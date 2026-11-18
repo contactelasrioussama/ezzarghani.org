@@ -1,7 +1,7 @@
 # ezzarghani.org
 
 Static rebuild of **ezzarghani.org**, the portfolio of Mustapha Ezzarghani: writer, peace advocate and photographer.
-The original site runs on WordPress + Elementor Pro. This version is plain HTML, CSS and JavaScript. There is no build step, no framework and no dependencies, so it can be hosted free on **GitHub Pages**.
+The original site runs on WordPress + Elementor Pro. This version is plain HTML, CSS and JavaScript. There is no build step, no framework and no dependencies, so it is hosted as a plain static site on **Vercel**, deployed from this GitHub repository.
 
 ## Pages
 
@@ -24,7 +24,8 @@ assets/
   js/main.js       mobile menu, masonry gallery, lightbox, contact form, footer year
   img/*.webp       photographs (downloaded from the original site)
   favicon.webp     dove logo
-sitemap.xml, robots.txt, .nojekyll
+vercel.json        trailing-slash URLs (like WordPress), image caching, security headers
+sitemap.xml, robots.txt
 ```
 
 ## Design specs (measured from the live site)
@@ -44,25 +45,27 @@ python -m http.server 8080
 
 Then open <http://localhost:8080>. Opening the HTML files straight from disk works too, but folder links such as `bio/` will show a file listing.
 
-## Deploy to GitHub Pages
+## Deployment (Vercel)
 
-1. Push this folder to a GitHub repository.
-2. In the repository, go to **Settings → Pages → Build and deployment**, choose **Deploy from a branch**, then branch `main` and folder `/ (root)`.
-3. The site goes live at `https://<user>.github.io/<repo>/`. All page links are relative, so they work at that sub-path. The 404 page uses root paths, so it only looks right on the custom domain.
+The Vercel project is linked to this GitHub repository:
+
+- Every push to `main` deploys to production.
+- Every other branch or pull request gets its own preview URL.
+
+There is nothing to build. Vercel serves the files as they are (framework preset **Other**, no build command, output directory = repository root).
 
 ### Moving the custom domain over (do this when you're ready to retire WordPress)
 
-1. In **Settings → Pages → Custom domain**, enter `ezzarghani.org`. This creates a `CNAME` file in the repository.
-2. At the DNS provider, point the apex domain to GitHub Pages:
-   - `A` records: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
-   - `AAAA` records: `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`, `2606:50c0:8003::153`
-   - `CNAME` record: `www` → `<user>.github.io`
-3. Once the certificate has been issued, tick **Enforce HTTPS**.
-4. Check whether the email (`contact@ezzarghani.org`) is hosted with the same provider. If it is, keep the existing `MX` records unchanged.
+1. In the Vercel project, open **Settings → Domains** and add `ezzarghani.org` and `www.ezzarghani.org`. Make one of them redirect to the other.
+2. At the DNS provider, set the records Vercel shows. Usually these are:
+   - `A` record for `@` → `76.76.21.21`
+   - `CNAME` record for `www` → `cname.vercel-dns.com`
+3. Vercel issues the HTTPS certificate automatically once DNS resolves.
+4. Check whether the email (`contact@ezzarghani.org`) is hosted with the same DNS provider. If it is, keep the existing `MX` (and SPF/DKIM `TXT`) records unchanged.
 
 ## Contact form
 
-GitHub Pages cannot run server code. The form therefore works in two ways:
+The site is purely static, with no server code to send email. The form therefore works in two ways:
 
 - **As shipped:** pressing *Submit* opens the visitor's email app with the message already addressed to `contact@ezzarghani.org`.
 - **Recommended:** create a free form endpoint at [Formspree](https://formspree.io) (or Web3Forms). Then put its URL in `contact/index.html`:
