@@ -72,15 +72,17 @@ Mail settings are on Namecheap's default **Email Forwarding**. The old `contact@
 
 ## Contact form
 
-The form posts to **`/api/contact/`** (`api/contact.js`, a Vercel function). The function emails each message to **`ezzarghani@gmail.com`**, sending through Gmail's SMTP server as that same account. **Reply** in Gmail goes straight to the visitor.
+The form posts to **`/api/contact/`** (`api/contact.js`, a Vercel function). The function emails each message to **`ezzarghani@gmail.com`** through [Resend](https://resend.com), sent as `noreply@ezzarghani.org`. **Reply** in Gmail goes straight to the visitor.
 
 - **Settings:** Vercel → Project `ezzarghani` → Settings → Environment Variables:
-  - `SMTP_HOST=smtp.gmail.com`
+  - `SMTP_HOST=smtp.resend.com`
   - `SMTP_PORT=465`
-  - `SMTP_USER=ezzarghani@gmail.com`
+  - `SMTP_USER=resend`
+  - `MAIL_FROM=noreply@ezzarghani.org`
   - `MAIL_TO=ezzarghani@gmail.com`
-- **`SMTP_PASS`** must be a Gmail **App Password**, not the normal Gmail password. Create it at <https://myaccount.google.com/apppasswords> (the account needs 2-Step Verification turned on). Store it as a *Sensitive* variable for Production and Preview, then redeploy.
-- **If the Google password changes** or the App Password is revoked, create a new App Password and update `SMTP_PASS`.
+  - **`SMTP_PASS`** = a Resend API key (`re_…`), stored as *Sensitive* for Production and Preview. Redeploy after changing it.
+- **Resend account:** the free plan allows 3,000 emails a month. The domain `ezzarghani.org` is verified there with DNS records in Namecheap Advanced DNS: a DKIM `TXT` on `resend._domainkey`, plus SPF/MX records on the `send` subdomain. Don't delete those records, or sending stops.
+- **To change where messages go:** edit `MAIL_TO` and redeploy. No code change is needed.
 - **Spam protection:**
   - a hidden honeypot field
   - submissions faster than 3 seconds are rejected

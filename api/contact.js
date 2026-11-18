@@ -1,13 +1,15 @@
 // Vercel serverless function: POST /api/contact
 // Receives the contact form (JSON) and emails it to ezzarghani@gmail.com
-// through Gmail's SMTP server.
+// through Resend's SMTP relay, sent as noreply@ezzarghani.org.
 //
 // Required environment variables (Vercel → Project → Settings → Environment Variables):
-//   SMTP_HOST  smtp.gmail.com
+//   SMTP_HOST  smtp.resend.com
 //   SMTP_PORT  465
-//   SMTP_USER  ezzarghani@gmail.com
-//   SMTP_PASS  a Gmail App Password (https://myaccount.google.com/apppasswords), marked Sensitive
+//   SMTP_USER  resend
+//   SMTP_PASS  a Resend API key (re_…), marked Sensitive
+//   MAIL_FROM  noreply@ezzarghani.org   (must be on a domain verified in Resend)
 //   MAIL_TO    ezzarghani@gmail.com
+// Works with any SMTP provider; MAIL_FROM falls back to SMTP_USER when unset.
 // Optional:
 //   ALLOWED_ORIGINS  comma-separated list of extra allowed origins
 
@@ -85,6 +87,7 @@ export default async function handler(req, res) {
   if (Object.keys(errors).length) return res.status(400).json({ ok: false, errors });
 
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_TO } = process.env;
+  const MAIL_FROM = process.env.MAIL_FROM || SMTP_USER;
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS || !MAIL_TO) {
     console.error("contact: SMTP environment variables are missing");
     return res.status(500).json({ ok: false, error: "The contact form is not configured yet." });
@@ -118,7 +121,7 @@ export default async function handler(req, res) {
 
   try {
     await transporter.sendMail({
-      from: { name: "ezzarghani.org contact form", address: SMTP_USER },
+      from: { name: "ezzarghani.org contact form", address: MAIL_FROM },
       to: MAIL_TO,
       replyTo: name ? { name, address: email } : email,
       subject: `[Website] ${subject || `New message from ${name || email}`}`,
