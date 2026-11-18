@@ -56,29 +56,31 @@ The Vercel project is linked to this GitHub repository:
 
 The pages are served as static files. The only server code is `api/contact.js`; Vercel installs its one dependency (`nodemailer`) from `package.json`. There is no build command.
 
-### Domain and DNS (done 2026-11-18)
+### Domain and DNS
+
+The domain is registered at Namecheap (paid until Nov 2027). Its DNS is **Namecheap BasicDNS**: Domain List → `ezzarghani.org` → **Advanced DNS**. The Namecheap web hosting was cancelled on 2026-11-18.
 
 `ezzarghani.org` is the primary domain, and `www.ezzarghani.org` 308-redirects to it.
-DNS stays at **Namecheap hosting cPanel → Zone Editor** (nameservers `dns1/dns2.namecheaphosting.com`):
 
-| Record | Value |
+| Host record | Value |
 |---|---|
-| `A` `ezzarghani.org` | `216.198.79.1` and `64.29.17.1` (Vercel), TTL 300 |
-| `CNAME` `www` | `3e5e02b76a578d10.vercel-dns-017.com` (Vercel), TTL 300 |
-| SPF `TXT` | `v=spf1 +a +mx +ip4:198.54.114.94 +ip4:198.54.116.94 +ip4:198.54.114.222 include:spf.web-hosting.com ~all` |
+| `A` `@` | `216.198.79.1` |
+| `A` `@` | `64.29.17.1` |
+| `CNAME` `www` | `3e5e02b76a578d10.vercel-dns-017.com.` |
 
-Email still runs on the Namecheap hosting. Don't change the `MX`, `mail.` `A`, DKIM or DMARC records.
-
-**Mail apps** (phone, Outlook, etc.) must use the server **`server215.web-hosting.com`**: IMAP 993 / SMTP 465, SSL. Don't use `ezzarghani.org`, which now points to Vercel.
-
-To roll back to WordPress: set the `A` record back to `198.54.114.222` (delete the second one) and the `www` CNAME back to `ezzarghani.org`.
+Mail settings are on Namecheap's default **Email Forwarding**. The old `contact@ezzarghani.org` mailbox was deleted along with the hosting. A full backup (196 messages) was saved on 2026-11-18.
 
 ## Contact form
 
-The form posts to **`/api/contact`** (`api/contact.js`, a Vercel function). The function emails the message to `contact@ezzarghani.org` through the domain's own cPanel mail server. **Reply** in the inbox goes straight to the visitor.
+The form posts to **`/api/contact/`** (`api/contact.js`, a Vercel function). The function emails each message to **`ezzarghani@gmail.com`**, sending through Gmail's SMTP server as that same account. **Reply** in Gmail goes straight to the visitor.
 
-- **Settings:** Vercel → Project `ezzarghani` → Settings → Environment Variables. `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER` and `MAIL_TO` are already set. **`SMTP_PASS`** (the mailbox password) must be added by hand, as a *Sensitive* variable for Production and Preview. Redeploy after changing it.
-- **If you change the mailbox password in cPanel**, update `SMTP_PASS` too, or the form stops sending.
+- **Settings:** Vercel → Project `ezzarghani` → Settings → Environment Variables:
+  - `SMTP_HOST=smtp.gmail.com`
+  - `SMTP_PORT=465`
+  - `SMTP_USER=ezzarghani@gmail.com`
+  - `MAIL_TO=ezzarghani@gmail.com`
+- **`SMTP_PASS`** must be a Gmail **App Password**, not the normal Gmail password. Create it at <https://myaccount.google.com/apppasswords> (the account needs 2-Step Verification turned on). Store it as a *Sensitive* variable for Production and Preview, then redeploy.
+- **If the Google password changes** or the App Password is revoked, create a new App Password and update `SMTP_PASS`.
 - **Spam protection:**
   - a hidden honeypot field
   - submissions faster than 3 seconds are rejected

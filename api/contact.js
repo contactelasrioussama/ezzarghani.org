@@ -1,13 +1,13 @@
 // Vercel serverless function: POST /api/contact
-// Receives the contact form (JSON) and emails it to contact@ezzarghani.org
-// through the domain's own mail server (Namecheap cPanel SMTP).
+// Receives the contact form (JSON) and emails it to ezzarghani@gmail.com
+// through Gmail's SMTP server.
 //
 // Required environment variables (Vercel → Project → Settings → Environment Variables):
-//   SMTP_HOST  server215.web-hosting.com
+//   SMTP_HOST  smtp.gmail.com
 //   SMTP_PORT  465
-//   SMTP_USER  contact@ezzarghani.org
-//   SMTP_PASS  (the mailbox password — set it yourself, mark it Sensitive)
-//   MAIL_TO    contact@ezzarghani.org
+//   SMTP_USER  ezzarghani@gmail.com
+//   SMTP_PASS  a Gmail App Password (https://myaccount.google.com/apppasswords), marked Sensitive
+//   MAIL_TO    ezzarghani@gmail.com
 // Optional:
 //   ALLOWED_ORIGINS  comma-separated list of extra allowed origins
 
