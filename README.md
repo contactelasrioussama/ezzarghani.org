@@ -68,7 +68,13 @@ The domain is registered at Namecheap (paid until Nov 2027). Its DNS is **Namech
 | `A` `@` | `64.29.17.1` |
 | `CNAME` `www` | `3e5e02b76a578d10.vercel-dns-017.com.` |
 
-Mail settings are on Namecheap's default **Email Forwarding**. The old `contact@ezzarghani.org` mailbox was deleted along with the hosting. A full backup (196 messages) was saved on 2026-11-18.
+Mail settings use Namecheap **Email Forwarding**: `contact@ezzarghani.org` → `ezzarghani@gmail.com`. To change it, go to Domain tab → **Redirect Email**. This is forwarding only: there is no mailbox, and you can't send *as* contact@ from Gmail with this setup. The old cPanel mailbox was deleted along with the hosting; a full backup (196 messages) was saved on 2026-11-18.
+
+Other records in Advanced DNS belong to Resend (contact-form sending) and must stay:
+- `TXT resend._domainkey`
+- `CNAME rsend`
+- `CNAME send`
+- `TXT _dmarc`
 
 ## Contact form
 
